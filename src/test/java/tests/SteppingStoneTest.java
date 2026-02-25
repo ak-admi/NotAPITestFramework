@@ -2,11 +2,10 @@ package tests;
 
 import base.BaseTest;
 import org.testng.annotations.Test;
-import io.restassured.RestAssured;
-import static io.restassured.RestAssured.*;
-import  static org.hamcrest.Matchers.*;
 
-public class SteppingStone extends BaseTest {
+import static io.restassured.RestAssured.*;
+
+public class SteppingStoneTest extends BaseTest {
     @Test
     public void getUsers(){
         given().baseUri("https://jsonplaceholder.typicode.com")

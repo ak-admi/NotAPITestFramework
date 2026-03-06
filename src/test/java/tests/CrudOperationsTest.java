@@ -1,6 +1,7 @@
 package tests;
 
 import base.BaseTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -11,6 +12,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class CrudOperationsTest extends BaseTest {
+
+    @BeforeClass
+    public void init(){
+        setup("https://jsonplaceholder.typicode.com");
+    }
 
     @Test
     public void createPost_WithMap(){

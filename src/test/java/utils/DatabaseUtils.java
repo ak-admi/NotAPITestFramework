@@ -25,4 +25,33 @@ public class DatabaseUtils {
             throw new RuntimeException(e);
         }
     }
+
+    public static int getStock(int i) {
+        try {
+            Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+
+            Statement stmt = connection.createStatement();
+
+            ResultSet rs = stmt.executeQuery("Select stock from Inventory where id="+i);
+
+            rs.next();
+            return rs.getInt("stock");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void setStock(int i){
+
+        try {
+            Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+
+            Statement stmt = connection.createStatement();
+
+            stmt.executeUpdate("UPDATE inventory SET stock = 5 WHERE id ="+i);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

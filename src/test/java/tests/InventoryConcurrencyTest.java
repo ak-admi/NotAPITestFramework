@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 
@@ -38,7 +39,7 @@ public class InventoryConcurrencyTest extends BaseTest {
                }catch (InterruptedException e){
                    throw new RuntimeException(e);
                }
-                   RestAssured.given()
+                   given()
                            .post("/inventory/1/buy")
                            .then()
                            .statusCode(anyOf(is(200), is(409)));
@@ -70,7 +71,7 @@ public class InventoryConcurrencyTest extends BaseTest {
                 try {
                     latch.await();
 
-                int statusCode=RestAssured.given()
+                int statusCode= given()
                         .queryParam("quantity",2)
                         .post("/inventory/7/decrement")
                         .then()
@@ -101,5 +102,67 @@ public class InventoryConcurrencyTest extends BaseTest {
         System.out.println("Other failures:   " + otherFailures.get());
         System.out.println("============================");
 
+    }
+
+    @Test
+    public void testPessimisticLocking() throws InterruptedException{
+        Long inventoryId=8L;
+        int quantity=2;
+        int numberOfThreads=10;
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger conflictCount = new AtomicInteger(0);
+        AtomicInteger errorCount = new AtomicInteger(0);
+
+        ExecutorService executor= Executors.newFixedThreadPool(numberOfThreads);
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        long startTime=System.currentTimeMillis();
+
+        for(int i=0;i<numberOfThreads;i++){
+            final int threadNum=i;
+            executor.submit(()->
+            {
+                try{
+                    latch.countDown();
+                    latch.await();
+                    System.out.println("Thread"+threadNum+"starting request.....");
+
+                    int statusCode=given()
+                            .queryParam("quantity",quantity)
+                            .when()
+                            .post("/inventory/"+inventoryId+"/purchase-pessimistic")
+                            .then()
+                            .extract()
+                            .statusCode();
+
+                    if(statusCode==200){
+                        successCount.incrementAndGet();
+                        System.out.println("thread"+threadNum+"SUCCESS");
+                    }else if(statusCode==409){
+                        conflictCount.incrementAndGet();
+                        System.out.println("⚠️ Thread " + threadNum + " CONFLICT (out of stock)");
+                    }else{
+                        errorCount.incrementAndGet();
+                        System.out.println("Thread"+threadNum+"ERROR:"+statusCode);
+                    }
+                } catch (Exception e) {
+                    errorCount.incrementAndGet();
+                    System.out.println("Thread"+threadNum+" EXCEPTION: "+e.getMessage());
+                }
+            });
+        }
+        executor.shutdown();
+        executor.awaitTermination(60,TimeUnit.SECONDS);
+
+        long duration = System.currentTimeMillis() - startTime;
+
+        System.out.println("\n========== PESSIMISTIC LOCKING RESULTS ==========");
+        System.out.println("Total threads:    " + numberOfThreads);
+        System.out.println("200 OK:           " + successCount.get());
+        System.out.println("409 Conflict:     " + conflictCount.get());
+        System.out.println("Errors:           " + errorCount.get());
+        System.out.println("Duration:         " + duration + "ms");
+        System.out.println("=================================================");
     }
 }

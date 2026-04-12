@@ -17,17 +17,18 @@ public class RequestValidation extends BaseTest {
         setup(ConfigReader.get("base.url"));
     }
 
+    String email = "jane" + System.currentTimeMillis() + "@example.com";
     @Test
     public void testCreateUser_ValidInput_Success(){
         given()
                 .contentType(ContentType.JSON)
-                .body("{ \"name\": \"John Doe\", \"email\": \"john@example.com\" }")
+                .body("{ \"name\": \"John Doe\", \"email\": \""+email+"\" }")
                 .when()
                 .post("/users")
                 .then()
                 .statusCode(201)
                 .body("name", equalTo("John Doe"))
-                .body("email",equalTo("john@example.com"))
+                .body("email",equalTo(email))
                 .body("id",notNullValue());
     }
 
@@ -102,7 +103,7 @@ public class RequestValidation extends BaseTest {
         // First create a user
         Integer userId = given()
                 .contentType(ContentType.JSON)
-                .body("{ \"name\": \"Jane Doe\", \"email\": \"jane@example.com\" }")
+                .body("{ \"name\": \"Jane Doe\", \"email\": \""+email+"\" }")
                 .when()
                 .post("/users")
                 .then()
@@ -127,7 +128,7 @@ public class RequestValidation extends BaseTest {
         // Create a user first
         Integer userId = given()
                 .contentType(ContentType.JSON)
-                .body("{ \"name\": \"Test User\", \"email\": \"test@example.com\" }")
+                .body("{ \"name\": \"Test User\", \"email\": \""+email+"\" }")
                 .when()
                 .post("/users")
                 .then()

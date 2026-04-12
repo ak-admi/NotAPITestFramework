@@ -151,6 +151,7 @@ Common settings like base URL and content type are defined once in `BaseTest` an
 - [x] BaseTest with RequestSpecification
 - [x] GET request tests
 - [x] CRUD operations (POST, PUT, PATCH, DELETE)
+- [x] Request Validation 
 - [ ] POJO based request/response
 - [ ] Utility/Helper classes
 - [ ] testng.xml suite configuration
